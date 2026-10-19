@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://course-project/merchant-api/service.schema.json",
+  "title": "Merchant Payment Service — response contracts",
+  "description": "JSON Schema for the service API responses. Validates structure (fields, types, enums, patterns), not business logic. Source: course-project/docs/API.md.",
+  "definitions": {
+    "Payment": {
+      "type": "object",
+      "required": [
+        "id",
+        "stripe_pi_id",
+        "amount",
+        "currency",
+        "status",
+        "capture_method",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "description": "Payment UUID in this service"
+        },
+        "stripe_pi_id": {
+          "type": "string",
+          "pattern": "^pi_",
+          "description": "Stripe PaymentIntent ID"
+        },
+        "amount": { "type": "integer", "minimum": 0, "description": "Amount in cents" },
+        "currency": { "type": "string", "enum": ["usd"] },
+        "status": {
+          "type": "string",
+          "enum": [
+            "succeeded",
+            "requires_capture",
+            "requires_action",
+            "failed",
+            "canceled",
+            "refunded"
+          ]
+        },
+        "capture_method": { "type": "string", "enum": ["automatic", "manual"] },
+        "customer_email": { "type": ["string", "null"] },
+        "description": { "type": ["string", "null"] },
+        "metadata": { "type": "object" },
+        "idempotency_key": { "type": ["string", "null"] },
+        "created_at": { "type": "string", "description": "ISO date-time" },
+        "updated_at": { "type": "string", "description": "ISO date-time" },
+        "captured_amount": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+
+    "PaymentList": {
+      "type": "object",
+      "required": ["payments", "total", "page", "limit"],
+      "properties": {
+        "payments": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Payment" }
+        },
+        "total": { "type": "integer", "minimum": 0 },
+        "page": { "type": "integer", "minimum": 1 },
+        "limit": { "type": "integer", "minimum": 1, "maximum": 100 }
+      },
+      "additionalProperties": true
+    },
+
+    "Refund": {
+      "type": "object",
+      "required": ["id", "payment_id", "stripe_refund_id", "amount", "status", "created_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "payment_id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "stripe_refund_id": { "type": "string", "pattern": "^re_" },
+        "amount": { "type": "integer", "minimum": 0 },
+        "status": { "type": "string", "enum": ["succeeded"] },
+        "reason": { "type": ["string", "null"] },
+        "created_at": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+
+    "Error": {
+      "type": "object",
+      "required": ["error"],
+      "properties": {
+        "error": {
+          "type": "object",
+          "required": ["type", "message"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "validation_error",
+                "invalid_state",
+                "invalid_request",
+                "not_found",
+                "server_error",
+                "card_error"
+              ]
+            },
+            "message": { "type": "string" },
+            "code": { "type": "string" },
+            "decline_code": { "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "Health": {
+      "type": "object",
+      "required": ["status", "db", "timestamp"],
+      "properties": {
+        "status": { "type": "string", "enum": ["ok", "error"] },
+        "db": { "type": "string", "enum": ["connected", "disconnected"] },
+        "timestamp": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+
+    "Config": {
+      "type": "object",
+      "required": ["publishableKey"],
+      "properties": {
+        "publishableKey": { "type": "string", "pattern": "^pk_" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,33 @@
+﻿{
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/payment_intents"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "pi_mock_success_001",
+      "object": "payment_intent",
+      "amount": 1500,
+      "currency": "usd",
+      "status": "succeeded",
+      "payment_method": "pm_card_visa",
+      "capture_method": "automatic",
+      "charges": {
+        "data": [
+          {
+            "id": "ch_mock_success_001",
+            "object": "charge",
+            "amount": 1500,
+            "currency": "usd",
+            "status": "succeeded",
+            "paid": true
+          }
+        ]
+      }
+    }
+  }
+}

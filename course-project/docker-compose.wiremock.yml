@@ -1,0 +1,32 @@
+# WireMock mode: the service talks to WireMock instead of the real Stripe sandbox.
+# Start:  docker compose -f docker-compose.yml -f docker-compose.wiremock.yml up -d
+# Back to Stripe:  docker compose up -d --remove-orphans
+# Guide: docs/wiremock.md
+services:
+  api:
+    environment:
+      # Where the service sends its Stripe API calls (default: https://api.stripe.com)
+      STRIPE_API_BASE: http://wiremock:8080
+      # Placeholder keys: in WireMock mode they only ever reach WireMock
+      STRIPE_SECRET_KEY: sk_test_wiremock
+      STRIPE_PUBLISHABLE_KEY: pk_test_wiremock
+    depends_on:
+      wiremock:
+        condition: service_started
+
+  # Separate database: payments made against WireMock never mix with your real Stripe test payments
+  db:
+    volumes:
+      - pgdata_wiremock:/var/lib/postgresql/data
+
+  wiremock:
+    image: wiremock/wiremock:3.13.2
+    command: --global-response-templating --disable-banner
+    ports:
+      - "8080:8080"   # admin API and request journal: http://localhost:8080/__admin
+    volumes:
+      - ./wiremock:/home/wiremock   # your stubs: wiremock/mappings and wiremock/__files
+    restart: unless-stopped
+
+volumes:
+  pgdata_wiremock:

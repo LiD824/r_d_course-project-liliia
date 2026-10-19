@@ -1,0 +1,14 @@
+{
+  "name": "Stripe returns non-JSON body (payment_method=pm_bad_json)",
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/payment_intents",
+    "bodyPatterns": [{ "contains": "payment_method=pm_bad_json" }]
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "body": "{ this is not valid json"
+  }
+}

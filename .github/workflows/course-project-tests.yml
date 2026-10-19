@@ -1,0 +1,77 @@
+# Course project — Merchant Payment Service test pipeline
+#
+# Runs on every push / PR without any secrets (no real Stripe key needed):
+#   1. contracts  — JSON Schema contract tests (fixtures; no service)
+#   2. wiremock   — starts the WireMock-mode stack and runs the Stripe
+#                   failure-handling integration tests against it
+#
+# The full API suite (tests/*.integration.test.ts) needs the service in real
+# Stripe test mode plus a test key, so it is run locally (see README). It also
+# contains the [BUG-xx] red tests that intentionally fail while the bugs exist.
+
+name: Course Project Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  contracts:
+    name: Contract tests (JSON Schema)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Contract tests
+        run: npx jest "contracts" --runInBand
+
+  wiremock:
+    name: WireMock integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Start WireMock-mode stack
+        working-directory: course-project
+        run: docker compose -f docker-compose.yml -f docker-compose.wiremock.yml up -d
+
+      - name: Wait for the service
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/api/health && exit 0
+            echo "Waiting for the service... ($i)"
+            sleep 3
+          done
+          echo "Service did not start" && exit 1
+
+      - name: WireMock integration tests
+        env:
+          API_BASE_URL: http://localhost:3000
+          WIREMOCK_URL: http://localhost:8080
+        run: npx jest "wiremock\.integration" --runInBand
+
+      - name: Service logs (on failure)
+        if: failure()
+        working-directory: course-project
+        run: docker compose -f docker-compose.yml -f docker-compose.wiremock.yml logs --tail 100

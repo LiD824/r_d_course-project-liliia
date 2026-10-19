@@ -1,0 +1,10 @@
+{
+  "name": "Create PaymentIntent (confirmed)",
+  "priority": 5,
+  "request": { "method": "POST", "url": "/v1/payment_intents" },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "bodyFileName": "payment-intent-created.json"
+  }
+}

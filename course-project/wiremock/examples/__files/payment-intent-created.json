@@ -1,0 +1,13 @@
+{{formData request.body 'form' urlDecode=true}}{{#assign 'id'}}pi_{{randomValue length=24 type='ALPHANUMERIC'}}{{/assign}}
+{
+  "id": "{{id}}",
+  "object": "payment_intent",
+  "amount": {{form.amount}},
+  "amount_received": {{form.amount}},
+  "currency": "{{form.currency}}",
+  "capture_method": "automatic",
+  "client_secret": "{{id}}_secret_{{randomValue length=24 type='ALPHANUMERIC'}}",
+  "payment_method": "{{form.payment_method}}",
+  "status": "succeeded",
+  "livemode": false
+}

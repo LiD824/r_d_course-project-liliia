@@ -1,0 +1,19 @@
+{
+  "name": "Stripe 500 api_error (payment_method=pm_error_500)",
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/payment_intents",
+    "bodyPatterns": [{ "contains": "payment_method=pm_error_500" }]
+  },
+  "response": {
+    "status": 500,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "error": {
+        "type": "api_error",
+        "message": "An unexpected error occurred."
+      }
+    }
+  }
+}
